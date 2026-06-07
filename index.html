@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>伍大猪猜数字</title>
+</head>
+
+<body>
+<h1>伍大猪猜数字</h1>
+<p>我心里想了一个 1 到 100 之间的数字，你猜猜看？</p>
+<input type="number" id="guessInput" placeholder="输入你的数字" inputmode="numeric" pattern="[0-9]*">
+<button id="guessBtn" onclick="checkGuess()">猜！</button>
+<p id="message"></p>
+<p>累计猜对次数：<span id="winCount">0</span></p>
+<p>最少猜对次数：<span id="bestScore">-</span></p>
+<p id="gradeRow" style="display:none;"><span id="gradeDisplay"></span></p>
+<button id="restartBtn" style="display:none;" onclick="restartGame()">再来一次</button>
+<script>
+    let currentAttempts = 0;    // 当前这局猜了几次
+    let bestScore = Infinity;   // 历史最少次数（Infinity = 无穷大）
+    // 1. 电脑先想好一个秘密数字
+    let secretNumber = Math.floor(Math.random() * 100) + 1;
+    console.log("嘘~ 秘密数字是：" + secretNumber); // 作弊用，按F12能看到
+
+    // 2. 当玩家点击按钮时，运行这个检查逻辑
+    function checkGuess() {
+        currentAttempts++;
+        // 拿到玩家输入的数字
+        let guess = document.getElementById("guessInput").value;
+        
+        // 对比
+        if (guess == secretNumber) {
+            document.getElementById("message").innerHTML = "恭喜！你猜对了！";
+
+            // 通关评价
+let gradeText = "";
+let gradeColor = "";
+if (currentAttempts <= 4) {
+    gradeText = "无敌";
+    gradeColor = "red";
+} else if (currentAttempts <= 6) {
+    gradeText = "很牛";
+    gradeColor = "purple";
+} else if (currentAttempts <= 10) {
+    gradeText = "一般";
+    gradeColor = "blue";
+} else {
+    gradeText = "继续努力";
+    gradeColor = "green";
+}
+            document.getElementById("gradeDisplay").innerText = "本次评价：" + gradeText;
+            document.getElementById("gradeDisplay").style.color = gradeColor;
+            document.getElementById("gradeRow").style.display = "block";
+            // 拿到当前次数，转成数字，加1
+            document.getElementById("guessBtn").style.display = "none";
+let currentCount = parseInt(document.getElementById("winCount").innerText);
+document.getElementById("winCount").innerText = currentCount + 1;
+document.getElementById("restartBtn").style.display = "inline-block";
+if (currentAttempts < bestScore) {
+    bestScore = currentAttempts;
+    document.getElementById("bestScore").innerText = bestScore;
+}
+        } else if (guess < secretNumber) {
+            document.getElementById("message").innerHTML = "太小了，再大一点";
+        } else {
+            document.getElementById("message").innerHTML = "太大了，再小一点";
+        }
+    }
+    function restartGame() {
+        currentAttempts = 0;
+    // 重新想一个秘密数字
+    secretNumber = Math.floor(Math.random() * 100) + 1;
+    console.log("嘘~ 新数字是：" + secretNumber);
+    // 清空提示
+    document.getElementById("message").innerHTML = "";
+    // 清空输入框
+    document.getElementById("guessInput").value = "";
+    // 隐藏再来一次按钮
+    document.getElementById("restartBtn").style.display = "none";
+    document.getElementById("guessBtn").style.display = "inline-block";
+    document.getElementById("guessInput").focus();
+    document.getElementById("gradeRow").style.display = "none";
+}
+</script>
+</body>
+</html>
