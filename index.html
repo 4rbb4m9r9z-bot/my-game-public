@@ -17,6 +17,7 @@
 <p id="gradeRow" style="display:none;"><span id="gradeDisplay"></span></p>
 <button id="restartBtn" style="display:none;" onclick="restartGame()">再来一次</button>
 <script>
+    let lastGuess = null;   // 记录上次输入的数字
     let currentAttempts = 0;    // 当前这局猜了几次
     let bestScore = Infinity;   // 历史最少次数（Infinity = 无穷大）
     // 1. 电脑先想好一个秘密数字
@@ -25,9 +26,13 @@
 
     // 2. 当玩家点击按钮时，运行这个检查逻辑
     function checkGuess() {
+    let guess = document.getElementById("guessInput").value;
+    
+    // 只有数字变化时才叠加次数
+    if (guess !== lastGuess) {
         currentAttempts++;
-        // 拿到玩家输入的数字
-        let guess = document.getElementById("guessInput").value;
+        lastGuess = guess;
+    }
         
         // 对比
         if (guess == secretNumber) {
@@ -69,6 +74,7 @@ if (currentAttempts < bestScore) {
     }
     function restartGame() {
         currentAttempts = 0;
+        lastGuess = null;
     // 重新想一个秘密数字
     secretNumber = Math.floor(Math.random() * 100) + 1;
     console.log("嘘~ 新数字是：" + secretNumber);
