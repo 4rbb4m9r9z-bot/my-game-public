@@ -295,7 +295,8 @@
         window.scrollTo(0, 0);
     }
 
-        function flyWordToBox(word, targetBox) {
+            function flyWordToBox(word, targetBox) {
+        // 飘字时才获取坐标，此时键盘已收起，页面已回弹
         let input = document.getElementById("wordInput");
         let inputRect = input.getBoundingClientRect();
         let boxRect = targetBox.getBoundingClientRect();
@@ -308,7 +309,6 @@
         let fly = document.createElement("span");
         fly.className = "flyWord";
         fly.innerText = word;
-        fly.style.position = "fixed";
         fly.style.left = startX + "px";
         fly.style.top = startY + "px";
         document.body.appendChild(fly);
@@ -357,7 +357,7 @@
                         currentLevel++;
                         loadLevel(currentLevel);
                     });
-                }, 400);
+                }, 450);
             }
         }
     }
