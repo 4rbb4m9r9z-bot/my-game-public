@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>找文字</title>
+    <style>
+        html, body {
+            overflow: hidden;
+            height: 100%;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* ========== 背景图 ========== */
+        body {
+            background: url("assets/images/bg.jpg") center/cover no-repeat fixed;
+            font-family: "Microsoft YaHei", sans-serif;
+            text-align: center;
+        }
+
+        /* ========== 关键字区域 ========== */
+        #keywordArea {
+            margin: 20px 0;
+        }
+        #keywordBg {
+            display: inline-block;
+            width: 160px;
+            height: 160px;
+            background: rgba(250, 240, 220, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            line-height: 160px;
+        }
+        #keywordDisplay {
+            font-family: "KaiTi", "楷体", "STKaiti", serif;
+            font-size: 120px;
+            color: #5C3A1E;
+            vertical-align: middle;
+        }
+
+        /* ========== 方块 - 田字格样式 ========== */
+        #foundList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .charBox {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #5C3A1E;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.75);
+            border-radius: 2px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+        }
+        .charBox::before {
+            content: "";
+            position: absolute;
+            top: 0; bottom: 0;
+            left: 50%;
+            width: 0;
+            border-left: 1px dashed #999;
+        }
+        .charBox::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0;
+            top: 50%;
+            width: 100%;
+            border-top: 1px dashed #999;
+        }
+        .charBox.found {
+            color: #2E7D32;
+            border-color: #2E7D32;
+            background: rgba(232,255,232,0.85);
+            box-shadow: 0 0 10px rgba(46,125,50,0.4);
+        }
+        .charBox.found::before {
+            border-left-color: #2E7D32;
+        }
+        .charBox.found::after {
+            border-top-color: #2E7D32;
+        }
+
+        /* ========== 飘字动画 ========== */
+        .flyWord {
+            position: fixed;
+            font-size: 32px;
+            font-weight: bold;
+            color: #2E7D32;
+            z-index: 100;
+            pointer-events: none;
+            transition: all 0.5s ease-out;
+        }
+
+        /* ========== 输入区 ========== */
+        #inputArea {
+            margin-top: 10px;
+        }
+        #wordInput {
+            display: block;
+            margin: 0 auto 8px auto;
+            width: 160px;
+            padding: 10px;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid #5C3A1E;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.85);
+            box-sizing: border-box;
+        }
+        #submitBtn {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 40px;
+            font-size: 18px;
+            background: #5C3A1E;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+
+        /* ========== 特效弹窗 ========== */
+        #modalOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+        #modalBox {
+            background: linear-gradient(135deg, #fdf6e3, #f5e6c8);
+            border-radius: 20px;
+            padding: 35px 28px 30px;
+            text-align: center;
+            max-width: 320px;
+            width: 80%;
+            box-shadow: 0 0 40px rgba(255,215,0,0.4), 0 8px 30px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        /* 金色边框光晕 */
+        #modalBox::before {
+            content: "";
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 22px;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700, #FF8C00, #FFD700);
+            background-size: 400% 400%;
+            z-index: -1;
+            animation: borderGlow 2s ease infinite;
+        }
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        /* 粒子 */
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FFD700;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatUp 1.5s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-120px) scale(0); }
+        }
+
+        /* ========== 弹窗内容样式 ========== */
+        /* 彩带图案：用三个彩带 emoji 居中 */
+        #modalRibbon {
+            font-size: 36px;
+            letter-spacing: 6px;
+            margin-bottom: 6px;
+            animation: ribbonBounce 0.6s ease-out;
+        }
+        @keyframes ribbonBounce {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        #modalText {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            color: #4A3000;
+            position: relative;
+            z-index: 1;
+        }
+        /* 按钮：深色 + 粗边框 + 常用游戏按钮风格 */
+        #modalBtn {
+            background: linear-gradient(180deg, #8B6914, #6B4F12);
+            color: #FFF;
+            border: 3px solid #FFD700;
+            padding: 14px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 1;
+            transition: all 0.15s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        #modalBtn:active {
+            transform: scale(0.95);
+            background: linear-gradient(180deg, #6B4F12, #4A3000);
+        }
+    </style>
+</head>
+<body>
+
+    <h2 id="levelTitle">第1关</h2>
+    <p>找出 <span id="wordCount" style="color:#C0392B;font-weight:bold;">3</span> 个常用字</p>
+    <p>已找到：</p>
+    <div id="foundList"></div>
+
+    <div id="keywordArea">
+        <div id="keywordBg">
+            <span id="keywordDisplay">千</span>
+        </div>
+    </div>
+
+    <div id="inputArea">
+        <input type="text" id="wordInput" placeholder="输入找到的文字" maxlength="1">
+        <button id="submitBtn" onclick="submitWord()">提交</button>
+    </div>
+    <p id="message"></p>
+
+    <!-- 特效弹窗 -->
+    <div id="modalOverlay">
+        <div id="modalBox">
+            <div id="modalRibbon"></div>
+            <div id="modalText"></div>
+            <button id="modalBtn" onclick="closeModal()">下一关</button>
+        </div>
+    </div>
+
+<script>
+    let levels = [];
+    let currentLevel = 0;
+    let foundWords = [];
+
+    fetch("config/levels.json")
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            levels = data;
+            loadLevel(currentLevel);
+        })
+        .catch(function(error) {
+            console.error("加载关卡数据失败：", error);
+            alert("加载关卡数据失败，请检查 config/levels.json 文件是否存在。");
+        });
+
+    function loadLevel(index) {
+        let level = levels[index];
+        foundWords = [];
+
+        document.getElementById("levelTitle").innerText = "第" + (index + 1) + "关";
+        document.getElementById("wordCount").innerText = level.count;
+
+        let container = document.getElementById("foundList");
+        container.innerHTML = "";
+        for (let i = 0; i < level.count; i++) {
+            let box = document.createElement("span");
+            box.className = "charBox";
+            box.innerText = "";
+            container.appendChild(box);
+        }
+
+        document.getElementById("keywordDisplay").innerText = level.keyword;
+        document.getElementById("wordInput").value = "";
+        document.getElementById("message").innerText = "";
+        document.getElementById("message").style.color = "red";
+        document.getElementById("submitBtn").disabled = false;
+        window.scrollTo(0, 0);
+    }
+
+    function flyWordToBox(word, targetBox) {
+        let input = document.getElementById("wordInput");
+        let inputRect = input.getBoundingClientRect();
+        let boxRect = targetBox.getBoundingClientRect();
+
+        let fly = document.createElement("span");
+        fly.className = "flyWord";
+        fly.innerText = word;
+        fly.style.left = inputRect.left + inputRect.width / 2 - 16 + "px";
+        fly.style.top = inputRect.top + "px";
+        document.body.appendChild(fly);
+
+        requestAnimationFrame(function() {
+            fly.style.left = boxRect.left + boxRect.width / 2 - 16 + "px";
+            fly.style.top = boxRect.top + "px";
+            fly.style.fontSize = "28px";
+            fly.style.opacity = "0.8";
+        });
+
+        setTimeout(function() {
+            fly.remove();
+            targetBox.innerText = word;
+            targetBox.classList.add("found");
+            updateFoundListComplete();
+        }, 500);
+    }
+
+    function updateFoundListComplete() {
+        let level = levels[currentLevel];
+        let boxes = document.getElementById("foundList").children;
+        let allFilled = true;
+        for (let i = 0; i < level.count; i++) {
+            if (boxes[i].innerText === "") {
+                allFilled = false;
+                break;
+            }
+        }
+        if (allFilled) {
+            document.getElementById("submitBtn").disabled = true;
+            document.getElementById("wordInput").blur();
+
+            if (currentLevel === levels.length - 1) {
+                setTimeout(function() {
+                    showModal("🎀🎀🎀", "恭喜，已通关全部关卡！\n新关卡增加中……", function() {
+                        currentLevel = 0;
+                        loadLevel(currentLevel);
+                    });
+                }, 400);
+            } else {
+                setTimeout(function() {
+                    showModal("🎀🎀🎀", "恭喜通关！", function() {
+                        currentLevel++;
+                        loadLevel(currentLevel);
+                    });
+                }, 400);
+            }
+        }
+    }
+
+    function showModal(ribbon, text, callback) {
+        document.getElementById("modalRibbon").innerText = ribbon;
+        document.getElementById("modalText").innerText = text;
+        document.getElementById("modalOverlay").style.display = "flex";
+
+        // 粒子
+        let box = document.getElementById("modalBox");
+        for (let i = 0; i < 20; i++) {
+            let p = document.createElement("span");
+            p.className = "particle";
+            p.style.left = Math.random() * 100 + "%";
+            p.style.top = Math.random() * 100 + "%";
+            p.style.animationDelay = Math.random() * 1.5 + "s";
+            p.style.width = (4 + Math.random() * 8) + "px";
+            p.style.height = p.style.width;
+            box.appendChild(p);
+            setTimeout(function() { p.remove(); }, 2000);
+        }
+
+        modalCallback = callback;
+    }
+    let modalCallback = null;
+
+    function closeModal() {
+        document.getElementById("modalOverlay").style.display = "none";
+        document.getElementById("wordInput").blur();
+        if (modalCallback) {
+            modalCallback();
+            modalCallback = null;
+        }
+    }
+
+    function submitWord() {
+        let input = document.getElementById("wordInput").value.trim();
+        let level = levels[currentLevel];
+        let msg = document.getElementById("message");
+
+        if (input.length !== 1) {
+            msg.style.color = "red";
+            msg.innerText = "请输入单个汉字";
+            return;
+        }
+        if (foundWords.includes(input)) {
+            msg.style.color = "red";
+            msg.innerText = "已找到该文字";
+            return;
+        }
+        if (!level.words.includes(input)) {
+            msg.style.color = "red";
+            msg.innerText = "不是正确的文字";
+            return;
+        }
+
+        foundWords.push(input);
+        msg.style.color = "green";
+        msg.innerText = "恭喜你，找到正确的文字“" + input + "”";
+        document.getElementById("wordInput").value = "";
+
+        let boxes = document.getElementById("foundList").children;
+        let targetBox = null;
+        for (let i = 0; i < boxes.length; i++) {
+            if (boxes[i].innerText === "") {
+                targetBox = boxes[i];
+                break;
+            }
+        }
+        if (targetBox) {
+            flyWordToBox(input, targetBox);
+        }
+    }
+</script>
+</body>
+</html>
