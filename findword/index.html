@@ -427,15 +427,16 @@
             }
         }
 
-        // 先收起键盘，等页面回弹后再飘字
-        document.getElementById("wordInput").blur();
+                // 延迟飘字，等键盘完全收起页面回弹
+        let word = input;
         document.getElementById("wordInput").value = "";
-
+        
         setTimeout(function() {
+            document.getElementById("wordInput").blur();
             if (targetBox) {
-                flyWordToBox(input, targetBox);
+                flyWordToBox(word, targetBox);
             }
-        }, 500);
+        }, 160);
     }
 </script>
 </body>
