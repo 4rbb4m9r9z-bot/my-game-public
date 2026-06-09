@@ -295,14 +295,14 @@
         window.scrollTo(0, 0);
     }
 
-            function flyWordToBox(word, targetBox) {
-        // 飘字时才获取坐标，此时键盘已收起，页面已回弹
-        let input = document.getElementById("wordInput");
-        let inputRect = input.getBoundingClientRect();
+                function flyWordToBox(word, targetBox) {
+        // 用提交按钮作为起点（不受键盘影响，位置固定）
+        let btn = document.getElementById("submitBtn");
+        let btnRect = btn.getBoundingClientRect();
         let boxRect = targetBox.getBoundingClientRect();
 
-        let startX = inputRect.left + inputRect.width / 2 - 16;
-        let startY = inputRect.top;
+        let startX = btnRect.left + btnRect.width / 2 - 16;
+        let startY = btnRect.top - 20;
         let endX = boxRect.left + boxRect.width / 2 - 16;
         let endY = boxRect.top;
 
@@ -427,16 +427,12 @@
             }
         }
 
-                // 延迟飘字，等键盘完全收起页面回弹
-        let word = input;
-        document.getElementById("wordInput").value = "";
+                document.getElementById("wordInput").value = "";
+        document.getElementById("wordInput").blur();
         
-        setTimeout(function() {
-            document.getElementById("wordInput").blur();
-            if (targetBox) {
-                flyWordToBox(word, targetBox);
-            }
-        }, 160);
+        if (targetBox) {
+            flyWordToBox(input, targetBox);
+        }
     }
 </script>
 </body>
