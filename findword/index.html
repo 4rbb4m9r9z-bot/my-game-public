@@ -18,6 +18,7 @@
             background: url("assets/images/bg.jpg") center/cover no-repeat fixed;
             font-family: "Microsoft YaHei", sans-serif;
             text-align: center;
+            position: relative;
         }
 
         /* ========== 关键字区域 ========== */
@@ -93,7 +94,7 @@
 
         /* ========== 飘字动画 ========== */
         .flyWord {
-            position: absolute;
+            position: fixed;
             font-size: 32px;
             font-weight: bold;
             color: #2E7D32;
@@ -294,30 +295,31 @@
         window.scrollTo(0, 0);
     }
 
-    function flyWordToBox(word, targetBox) {
+        function flyWordToBox(word, targetBox) {
         let input = document.getElementById("wordInput");
         let inputRect = input.getBoundingClientRect();
         let boxRect = targetBox.getBoundingClientRect();
-        let scrollY = window.scrollY || window.pageOffset;
 
         let startX = inputRect.left + inputRect.width / 2 - 16;
-        let startY = inputRect.top + scrollY;
+        let startY = inputRect.top;
         let endX = boxRect.left + boxRect.width / 2 - 16;
-        let endY = boxRect.top + scrollY;
+        let endY = boxRect.top;
 
         let fly = document.createElement("span");
         fly.className = "flyWord";
         fly.innerText = word;
-        fly.style.position = "absolute";
+        fly.style.position = "fixed";
         fly.style.left = startX + "px";
         fly.style.top = startY + "px";
         document.body.appendChild(fly);
 
         requestAnimationFrame(function() {
-            fly.style.left = endX + "px";
-            fly.style.top = endY + "px";
-            fly.style.fontSize = "28px";
-            fly.style.opacity = "0.8";
+            requestAnimationFrame(function() {
+                fly.style.left = endX + "px";
+                fly.style.top = endY + "px";
+                fly.style.fontSize = "28px";
+                fly.style.opacity = "0.8";
+            });
         });
 
         setTimeout(function() {
@@ -325,7 +327,7 @@
             targetBox.innerText = word;
             targetBox.classList.add("found");
             updateFoundListComplete();
-        }, 500);
+        }, 550);
     }
 
     function updateFoundListComplete() {
