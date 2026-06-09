@@ -93,7 +93,7 @@
 
         /* ========== 飘字动画 ========== */
         .flyWord {
-            position: fixed;
+            position: absolute;
             font-size: 32px;
             font-weight: bold;
             color: #2E7D32;
@@ -153,7 +153,6 @@
             position: relative;
             overflow: hidden;
         }
-        /* 金色边框光晕 */
         #modalBox::before {
             content: "";
             position: absolute;
@@ -168,7 +167,6 @@
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
         }
-        /* 粒子 */
         .particle {
             position: absolute;
             width: 8px;
@@ -184,7 +182,6 @@
         }
 
         /* ========== 弹窗内容样式 ========== */
-        /* 彩带图案：用三个彩带 emoji 居中 */
         #modalRibbon {
             font-size: 36px;
             letter-spacing: 6px;
@@ -205,7 +202,6 @@
             position: relative;
             z-index: 1;
         }
-        /* 按钮：深色 + 粗边框 + 常用游戏按钮风格 */
         #modalBtn {
             background: linear-gradient(180deg, #8B6914, #6B4F12);
             color: #FFF;
@@ -302,17 +298,24 @@
         let input = document.getElementById("wordInput");
         let inputRect = input.getBoundingClientRect();
         let boxRect = targetBox.getBoundingClientRect();
+        let scrollY = window.scrollY || window.pageOffset;
+
+        let startX = inputRect.left + inputRect.width / 2 - 16;
+        let startY = inputRect.top + scrollY;
+        let endX = boxRect.left + boxRect.width / 2 - 16;
+        let endY = boxRect.top + scrollY;
 
         let fly = document.createElement("span");
         fly.className = "flyWord";
         fly.innerText = word;
-        fly.style.left = inputRect.left + inputRect.width / 2 - 16 + "px";
-        fly.style.top = inputRect.top + "px";
+        fly.style.position = "absolute";
+        fly.style.left = startX + "px";
+        fly.style.top = startY + "px";
         document.body.appendChild(fly);
 
         requestAnimationFrame(function() {
-            fly.style.left = boxRect.left + boxRect.width / 2 - 16 + "px";
-            fly.style.top = boxRect.top + "px";
+            fly.style.left = endX + "px";
+            fly.style.top = endY + "px";
             fly.style.fontSize = "28px";
             fly.style.opacity = "0.8";
         });
@@ -362,7 +365,6 @@
         document.getElementById("modalText").innerText = text;
         document.getElementById("modalOverlay").style.display = "flex";
 
-        // 粒子
         let box = document.getElementById("modalBox");
         for (let i = 0; i < 20; i++) {
             let p = document.createElement("span");
