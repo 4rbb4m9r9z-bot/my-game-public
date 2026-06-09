@@ -393,7 +393,7 @@
         }
     }
 
-    function submitWord() {
+        function submitWord() {
         let input = document.getElementById("wordInput").value.trim();
         let level = levels[currentLevel];
         let msg = document.getElementById("message");
@@ -417,8 +417,7 @@
         foundWords.push(input);
         msg.style.color = "green";
         msg.innerText = "恭喜你，找到正确的文字“" + input + "”";
-        document.getElementById("wordInput").value = "";
-
+        
         let boxes = document.getElementById("foundList").children;
         let targetBox = null;
         for (let i = 0; i < boxes.length; i++) {
@@ -427,9 +426,16 @@
                 break;
             }
         }
-        if (targetBox) {
-            flyWordToBox(input, targetBox);
-        }
+
+        // 先收起键盘，等页面回弹后再飘字
+        document.getElementById("wordInput").blur();
+        document.getElementById("wordInput").value = "";
+
+        setTimeout(function() {
+            if (targetBox) {
+                flyWordToBox(input, targetBox);
+            }
+        }, 200);
     }
 </script>
 </body>
