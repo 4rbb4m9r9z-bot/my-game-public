@@ -432,13 +432,11 @@
                 document.getElementById("wordInput").value = "";
         document.getElementById("wordInput").blur();
         
-                if (targetBox) {
-            burstParticles(targetBox, function() {
-                popInBox(targetBox, input);
-            });
-            // 粒子先爆，0.2秒后文字弹出
+                        if (targetBox) {
+            burstParticles(targetBox);
             setTimeout(function() {
                 popInBox(targetBox, input);
+                updateFoundListComplete();
             }, 200);
         }
     }
